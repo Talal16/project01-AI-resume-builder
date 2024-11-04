@@ -46,5 +46,5 @@ AI CV Maker is a web application designed to assist users in creating profession
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/ai_cv_maker.git
-   cd ai_cv_maker
+   git clone https://github.com/Talal16/project01-AI-resume-builder.git
+   cd project01-AI-resume-builder

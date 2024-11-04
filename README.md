@@ -7,8 +7,6 @@ AI CV Maker is a web application designed to assist users in creating profession
 - [Technologies Used](#technologies-used)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Usage](#usage)
-- [License](#license)
 
 ## Features
 - User registration and authentication
@@ -35,14 +33,7 @@ AI CV Maker is a web application designed to assist users in creating profession
 ## Requirements
 - Python 3.8 or higher
 - Libraries:
-  - fastapi
-  - sqlalchemy
-  - passlib
-  - jose
-  - streamlit
-  - requests
-  - pydantic
-
+ 
 ## Installation
 1. Clone the repository:
    ```bash

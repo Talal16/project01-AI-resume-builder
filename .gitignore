@@ -1,0 +1,27 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.env/
+env/
+
+# Environment variable files
+.env
+.env.*
+
+# Database files
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Compiled files and cache directories
+.mypy_cache/
+.pytest_cache/
+.cache/
+
+# IDE and editor files
+.vscode/

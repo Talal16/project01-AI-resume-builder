@@ -13,5 +13,7 @@ uvicorn==0.32.0
 fastapi==0.115.4
 python-jose
 sqlalchemy
-python-jwt
+PyJWT
 pydantic[email]
+requests
+python-multipart

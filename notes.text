@@ -1,0 +1,3 @@
+{
+    "detail": "Failed to transcribe audio. Status code: 400, Message: {\"error\":\"You have passed more than 3000 mel input features (> 30 seconds) which automatically enables long-form generation which requires the model to predict timestamp tokens. Please either pass `return_timestamps=True` or make sure to pass no more than 3000 mel input features.\",\"warnings\":[\"There was an inference error: You have passed more than 3000 mel input features (> 30 seconds) which automatically enables long-form generation which requires the model to predict timestamp tokens. Please either pass `return_timestamps=True` or make sure to pass no more than 3000 mel input features.\"]}"
+}

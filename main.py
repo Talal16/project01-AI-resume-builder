@@ -1,30 +1,19 @@
 
-from fastapi import FastAPI
-
+from fastapi import FastAPI, status, Depends, HTTPException
+from sqlalchemy.orm import Session
 from app.models.base import Base
-from app.models.user_model import User  
-from app.models.history_model import ChatHistory, PDFHistory  
-from app.database import engine  # Ensure `engine` is defined and connected
-
-
-# Database configuration
-
+from app.database import engine, SessionLocal, get_db 
+from app.routers import auth_router 
 
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-
-# FastAPI
+# FastAPI app instance
 app = FastAPI()
-
-# Dependency to get the DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the AI CV Maker API!"}
+
+# the auth router - login and reg
+app.include_router(auth_router.router)

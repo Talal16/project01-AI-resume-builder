@@ -1,12 +1,15 @@
-import requests
+from openai import OpenAI
+client = OpenAI()
 
-API_URL = "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
-headers = {"Authorization": "Bearer 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"}
+completion = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {
+            "role": "user",
+            "content": "Write a haiku about recursion in programming."
+        }
+    ]
+)
 
-def query(filename):
-    with open(filename, "rb") as f:
-        data = f.read()
-    response = requests.post(API_URL, headers=headers, data=data)
-    return response.json()
-
-output = query("sample1.flac")
+print(completion.choices[0].message)

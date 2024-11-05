@@ -17,3 +17,5 @@ PyJWT
 pydantic[email]
 requests
 python-multipart
+google-cloud-speech
+OpenAI

@@ -1,98 +1,82 @@
+
 import openai
 import os
+from sqlalchemy.orm import Session
+from app.helpers import load_user_data, save_chat_history
 
 class ChatIntegrationService:
-    def __init__(self):
-        # Load your OpenAI API key here or from an environment variable
+    def __init__(self, db_session: Session, user_id: int):
+        self.db_session = db_session
+        self.user_id = user_id
         openai.api_key = os.getenv("OPENAI_API_KEY")
         
-        # Define a system message tailored for CV creation
+        # Load initial user data
+        self.user_data = load_user_data(self.db_session, self.user_id)
+        
+        # Define system message for the assistant's purpose
         self.system_message = {
             "role": "system",
             "content": (
-                "You are Ava AI, a highly capable CV assistant designed to guide users through creating a professional, "
-                "job-targeted CV with clarity and efficiency. Your goal is to create well-structured, tailored CVs based on user-provided data."
+                "You are Ava AI, a CV assistant who guides users through creating a professional CV. "
+                "Ask questions step-by-step to gather details like contact info, experience, and skills. "
+                "Save each response and confirm the information before proceeding. Track previous messages to ensure continuity."
             )
         }
-        # Initialize conversation state
-        self.conversation_state = "initial"
-        self.cv_data = {
-            "contact_info": None,
-            "summary": None,
-            "work_experience": [],
-            "education": None,
-            "skills": []
-        }
-
+        
+        # Initialize conversation context
+        self.conversation_history = [{"role": "system", "content": self.system_message['content']}]
+        
+        # Start with user data as the initial message
+        if self.user_data:
+            self.conversation_history.append({"role": "user", "content": self.user_data})
+        
     async def handle_message(self, user_message: str) -> str:
         try:
-            # Prepare the conversation flow based on the state
-            if self.conversation_state == "initial":
-                prompt = "Please provide your contact information (full name, email, phone number, and address)."
-                self.conversation_state = "contact_info"
-
-            elif self.conversation_state == "contact_info":
-                self.cv_data["contact_info"] = user_message
-                prompt = "Thank you! Now, please provide a short professional summary or objective for your CV."
-                self.conversation_state = "summary"
-
-            elif self.conversation_state == "summary":
-                self.cv_data["summary"] = user_message
-                prompt = "Great! Let's move on to work experience. Please provide details for your most recent job (title, company, duration, and key achievements)."
-                self.conversation_state = "work_experience"
-
-            elif self.conversation_state == "work_experience":
-                self.cv_data["work_experience"].append(user_message)
-                prompt = "Do you have more work experience to add? Reply 'yes' to add more or 'no' to continue to education."
-                self.conversation_state = "more_work_experience"
-
-            elif self.conversation_state == "more_work_experience":
-                if user_message.lower() == "yes":
-                    prompt = "Please provide the details for another job (title, company, duration, and key achievements)."
-                    self.conversation_state = "work_experience"
-                else:
-                    prompt = "Thank you! Now, please provide your education details (degree, institution, and graduation year)."
-                    self.conversation_state = "education"
-
-            elif self.conversation_state == "education":
-                self.cv_data["education"] = user_message
-                prompt = "Almost done! Now, please list your top skills relevant to the job you're applying for."
-                self.conversation_state = "skills"
-
-            elif self.conversation_state == "skills":
-                self.cv_data["skills"] = user_message.split(", ")
-                prompt = "Thank you! Your CV draft is ready. Here’s a summary:\n" + self.generate_cv_summary()
-                self.conversation_state = "completed"
-            else:
-                prompt = "Your CV is complete! Let me know if you would like any revisions."
-
-            # Use the generated prompt to get a response from the model if needed
-            messages = [
-                self.system_message,
-                {"role": "user", "content": prompt}
-            ]
+            # Add user's message to conversation history
+            self.conversation_history.append({"role": "user", "content": user_message})
             
+            # Call OpenAI's GPT model, including all previous conversation messages
             response = openai.ChatCompletion.create(
                 model="gpt-4o-mini",
-                messages=messages,
+                messages=self.conversation_history,
                 max_tokens=150,
                 temperature=0.7
             )
-
+            
+            # Get assistant's reply and add it to conversation history
             assistant_reply = response['choices'][0]['message']['content']
+            self.conversation_history.append({"role": "assistant", "content": assistant_reply})
+            
+            # Save to chat history
+            save_chat_history(self.db_session, self.user_id, user_message, assistant_reply)
+            
+            # Return the assistant's reply
             return assistant_reply
-
         except Exception as e:
             print(f"Error in OpenAI API call: {e}")
             return "There was an error processing your request. Please try again."
+    
+    async def print_cv(self) -> str:
+        # Generate the final CV in markdown format based on gathered conversation
+        user = self.db_session.query(User).filter(User.id == self.user_id).first()
+        degrees = self.db_session.query(Degrees).filter(Degrees.user_id == self.user_id).all()
 
-    def generate_cv_summary(self):
-        # Generate a CV summary from the collected data
-        summary = (
-            f"Contact Information: {self.cv_data['contact_info']}\n"
-            f"Professional Summary: {self.cv_data['summary']}\n"
-            f"Work Experience: {'; '.join(self.cv_data['work_experience'])}\n"
-            f"Education: {self.cv_data['education']}\n"
-            f"Skills: {', '.join(self.cv_data['skills'])}"
-        )
-        return summary
+        if user:
+            cv_content = (
+                f"# {user.full_name}\n\n"
+                f"## Contact Information\n"
+                f"- **Email:** {user.email}\n"
+                f"- **LinkedIn:** {user.linkedin_profile}\n\n"
+                
+                f"## Skills\n"
+                f"{user.skills}\n\n"
+                
+                f"## Education\n" +
+                "\n".join([f"- **{degree.degree_name}**, {degree.institution} ({degree.graduation_year})" for degree in degrees]) +
+                
+                f"\n\n"
+                f"---\n\n"
+                f"*Generated by Ava AI CV Assistant*"
+            )
+            return cv_content
+        return "User details not found. Unable to generate CV."

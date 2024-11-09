@@ -26,6 +26,7 @@ class PDFHistory(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     pdf_url = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    user = relationship("User", back_populates="pdf_history")
 
     def __repr__(self):
         return f"<PDFHistory(user_id={self.user_id}, pdf_url={self.pdf_url})>"

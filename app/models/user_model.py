@@ -1,10 +1,7 @@
-
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .base import Base 
-
-
+from .base import Base
 
 # Update User model to include relationship with Degrees
 class User(Base):
@@ -21,7 +18,9 @@ class User(Base):
     skills = Column(String, nullable=True)
 
     # Establishing a relationship with Degrees
-    # degrees = relationship("Degrees", back_populates="user") 
+    degrees = relationship("Degrees", back_populates="user")  # Corrected relationship name and added back_populates
+    chat_history = relationship("ChatHistory", back_populates="user")  # Added relationship for chat history
+    pdf_history = relationship("PDFHistory", back_populates="user")    # Added relationship for PDF history
 
     def __repr__(self):
         return f"<User(username={self.username}, email={self.email}, full_name={self.full_name})>"

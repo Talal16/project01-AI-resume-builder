@@ -1,6 +1,6 @@
 
 from sqlalchemy.orm import Session
-from models.user_model import Degrees
+from app.models.user_model import Degrees
 
 def add_degree(db_session: Session, user_id: int, degree_name: str, institution: str, graduation_year: int):
     new_degree = Degrees(

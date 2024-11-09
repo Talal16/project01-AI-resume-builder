@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from app.middleware.authenticate_user import authenticate_user
 from app.database import get_db
 from app.services.user_service import update_user_profile
-from models import User
+from app.models.user_model import User
 
 # Define router
 router = APIRouter()
